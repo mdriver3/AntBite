@@ -1,16 +1,16 @@
 #Final project working draft - R Programing
 #Michael Rivera - November 11, 2017
 
-library(plyr)
-library(gdata)
+#library(plyr)
+#library(gdata)
 library(tools)
-library(gridExtra)
-library(ggplot2)
+#library(ggplot2)
+#library(grid)
 
 #Functions
 #File cleaner ----
 #This function opens all csv files in a folder, removes header, and creates 2 dataframes
-file_cleaner <- function(folder, size_data = T, size_file){
+file_cleaner <- function(folder, size_data = TRUE, size_file){
 #   This function opens all the files in the folder, and creates 2 dataframes
 #   one which contains all the raw data and one with a summary stats per individual.
 #
@@ -51,7 +51,7 @@ file_cleaner <- function(folder, size_data = T, size_file){
   }
   
 # Bite summary 
-  bite.summary <- setNames((data.frame(matrix(nrow = (ncol(bite.data) - 1), ncol = 10))),c("individual", "num_bites", "max_bite", "max_bite_num", "sd_max", "bite1", "bite2", "bite3", "bite4", "bite5"))
+  bite.summary <- stats::setNames((data.frame(matrix(nrow = (ncol(bite.data) - 1), ncol = 10))),c("individual", "num_bites", "max_bite", "max_bite_num", "sd_max", "bite1", "bite2", "bite3", "bite4", "bite5"))
   indiv_count <- 1
   
   for(i in 2:ncol(bite.data)){
@@ -69,20 +69,20 @@ file_cleaner <- function(folder, size_data = T, size_file){
   bite.summary <- bite.summary[rowSums(is.na(bite.summary)) != ncol(bite.summary),] #Removes blank rows from the bite.summary dataframe
   #Adds number of max bites per individual
   bite.summary$num_bites <- rowSums(!apply(bite.summary[6:10],2, is.na))
-  bite.summary$max_bite <- apply(bite.summary[6:10], 1, max, na.rm = T)
+  bite.summary$max_bite <- apply(bite.summary[6:10], 1, max, na.rm = TRUE)
   for(i in 1:length(bite.summary$individual)){bite.summary$max_bite_num[i] <- which(bite.summary[i, 6:10] == max(bite.summary[i, 6:10], na.rm = T))[1]}
-  bite.summary$sd_max <- apply(bite.summary[,6:10], 1, sd, na.rm = T)
+  bite.summary$sd_max <- apply(bite.summary[,6:10], 1, sd, na.rm = TRUE)
   
-  if(size_data == T){
+  if(size_data == TRUE){
     
   }
   
 #Checking the data
   
-  if(file_ext(size_file) == "xlsx"){
-    sizes <- read.xls(size_file)
+  if(tools::file_ext(size_file) == "xlsx"){
+    sizes <- gdata::read.xls(size_file)
   } 
-  if(file_ext(size_file) == "csv"){
+  if(tools::file_ext(size_file) == "csv"){
     sizes <- read.table(size_file)
   } 
   #if(file_ext(size_file != "xlsx" | file_ext(size_file != "cdv"))){
@@ -109,7 +109,7 @@ file_cleaner <- function(folder, size_data = T, size_file){
 #This function caculates the variation in max bite and creates a figure and alerts the user to highly variable records
 #It uses the bite summary data frame from file_cleaner
 #Variation_tester test area
-bite_variation <- function(bite.summary, var_threshold = 2, to_plot = T){
+bite_variation <- function(bite.summary, var.threshold = 2, to_plot = TRUE){
 #   This function alerts the user to high/low variation in max bite force of an individual
 #   by using the bite.summary dataframe produced by file_cleaner
 #
@@ -125,12 +125,12 @@ bite_variation <- function(bite.summary, var_threshold = 2, to_plot = T){
 #
 # Warnings  
   for(i in 1:length(bite.summary$individual)){
-    if(bite.summary$sd_max[i] == 0){cat(paste(bite.summary$individual[i], " has no variation in max bites", sep = ""), fill = T)}
-    if(bite.summary$sd_max[i] >= var_threshold){cat(paste(bite.summary$individual[i], " excedes the variation threshold in max bites: ", bite.summary$sd_max[i], sep = ""), fill = T)}
+    if(bite.summary$sd_max[i] == 0){cat(paste(bite.summary$individual[i], " has no variation in max bites", sep = ""), fill = TRUE)}
+    if(bite.summary$sd_max[i] >= var.threshold){cat(paste(bite.summary$individual[i], " excedes the variation threshold in max bites: ", bite.summary$sd_max[i], sep = ""), fill = TRUE)}
   }
   
 #Boxplot
-  if(to_plot == T){
+  if(to_plot == TRUE){
   individual <- vector()
   force <- vector()
   
@@ -142,7 +142,7 @@ bite_variation <- function(bite.summary, var_threshold = 2, to_plot = T){
   }
   
   df <- data.frame(individual, force)
-  freq <- count(df, "individual")
+  freq <- plyr::count(df, "individual")
   
   boxplot(force ~ individual, data = df, xlab = "Individual", ylab = "Max force across bites")
   mtext("# Bites", side = 3, line = 1, at = .5, cex = 1, padj = 1.6)
@@ -153,7 +153,7 @@ bite_variation <- function(bite.summary, var_threshold = 2, to_plot = T){
 #Bite_size_scaling ----
 
 
-bite_size_scaling <- function(bite_summary, species = all, min_n = 10, morph_traits, plot = T, combine_plots = T){
+bite_size_scaling <- function(bite_summary, species = all, min_n = 10, morph_traits, plot = TRUE, combine_plots = TRUE){
 #   #This function uses the bite summary data to perform regression on specified species and morph traits and has
 #   the option to plot it or not. It uses 4 internal functions (one which ws obtained from Cookbook R)
 #   
@@ -174,7 +174,7 @@ bite_size_scaling <- function(bite_summary, species = all, min_n = 10, morph_tra
       return(bite.summary)
     } 
     if(species == "all_with_n"){
-      tab <- count(bite.summary$species)
+      tab <- plyr::count(bite.summary$species)
       return(bite.summary[which(bite.summary$species == tab[which(tab$freq >= min_n),1]),])
     }
   if(species != "all" | species != "all_with_n" & is.vector(species)){
@@ -182,16 +182,16 @@ bite_size_scaling <- function(bite_summary, species = all, min_n = 10, morph_tra
   }
   }
   bite_plot <- function(data, trait){
-    ggplot(data = data, aes(x = data[,which(colnames(data) == trait)], y = max_bite, color = species))+
-      geom_point(shape = 1)+
-      geom_smooth(method = lm, se = F)+
-      labs(x = paste(sub("_", " ", toTitleCase(trait)), "(mm)", sep = " "), y = "Max bite force (g)")+
-      theme_bw()}
+    ggplot2::ggplot(data = data, ggplot2::aes(x = data[,which(colnames(data) == trait)], y = bite_summary$max_bite, color = species))+
+      ggplot2::geom_point(shape = 1)+
+      ggplot2::geom_smooth(method = lm, se = F)+
+      ggplot2::labs(x = paste(sub("_", " ", tools::toTitleCase(trait)), "(mm)", sep = " "), y = "Max bite force (g)")+
+      ggplot2::theme_bw()}
   bite_lm <- function(data, trait){
-    lm1 <- lm(max_bite ~ data[,which(colnames(data) == trait)], data = data)
+    lm1 <- stats::lm(bite_summary$max_bite ~ data[,which(colnames(data) == trait)], data = data)
   }
   multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
-    library(grid)
+    
     
     # Make a list from the ... arguments and plotlist
     plots <- c(list(...), plotlist)
@@ -212,15 +212,15 @@ bite_size_scaling <- function(bite_summary, species = all, min_n = 10, morph_tra
       
     } else {
       # Set up the page
-      grid.newpage()
-      pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+      grid::grid.newpage()
+      grid::pushViewport(viewport(layout = grid::grid.layout(nrow(layout), ncol(layout))))
       
       # Make each plot, in the correct location
       for (i in 1:numPlots) {
         # Get the i,j matrix positions of the regions that contain this subplot
         matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
         
-        print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+        print(plots[[i]], vp = grid::viewport(layout.pos.row = matchidx$row,
                                         layout.pos.col = matchidx$col))
       }
     }
@@ -230,7 +230,7 @@ bite_size_scaling <- function(bite_summary, species = all, min_n = 10, morph_tra
 #Head_witdh
   if("width" %in% morph_traits){
   temp.trait <- "head_width"
-  a <- bite_lm(bite.summary, temp.trait)
+  a <- bite_lm(bite_summary, temp.trait)
   b <- summary(a)
     plot.w <- bite_plot(subset_bite_summary(bite_summary,species, min_n), temp.trait)
   }
@@ -238,7 +238,7 @@ bite_size_scaling <- function(bite_summary, species = all, min_n = 10, morph_tra
 #Head_length
   if("length" %in% morph_traits){
     temp.trait <- "head_length"
-    a <- bite_lm(bite.summary, temp.trait)
+    a <- bite_lm(bite_summary, temp.trait)
     b <- summary(a)
     plot.l <- bite_plot(subset_bite_summary(bite_summary,species, min_n), temp.trait)
   }
@@ -246,16 +246,16 @@ bite_size_scaling <- function(bite_summary, species = all, min_n = 10, morph_tra
 #Mandi_length
   if("mandi" %in% morph_traits){
     temp.trait <- "mandi_length"
-    a <- bite_lm(bite.summary, temp.trait)
+    a <- bite_lm(bite_summary, temp.trait)
     b <- summary(a)
     plot.m <- bite_plot(subset_bite_summary(bite_summary,species, min_n), temp.trait)
   } 
   
-  if(combine_plots == T){
+  if(combine_plots == TRUE){
     multiplot(plot.w, plot.l, plot.m)
     return()
   }
-  if(plot == T){
+  if(plot == TRUE){
     plot(plot.w)
     plot(plot.l)
     plot(plot.m)
@@ -266,3 +266,4 @@ bite_size_scaling <- function(bite_summary, species = all, min_n = 10, morph_tra
   }
   
   }
+

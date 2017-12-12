@@ -6,7 +6,8 @@ Authors@R: person("Michael", "Rivera", role = c("aut", "cre"),
                   email = "mdriver3@illinois.edu")
 Author: Michael Rivera [aut, cre]
 Maintainer: Michael Rivera <mdriver3@illinois.edu>
-Description: Test
+Description: A package for processing FlexiForce output files.
 Url: https://github.com/mdriver3/AntBite
+LazyData: true
 License: GPL-3
-Import: plyr, gdata, tools, gridExtra, ggplot2
+Imports: plyr, gdata, tools, ggplot2, stats, grid

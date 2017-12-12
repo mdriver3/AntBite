@@ -7,7 +7,7 @@ Import and Format Flexiforce(r) Force-Timeseries Data}
 This function takes in all Flexiforce CSV files in a folder and creates two dataframes. 1) Bite_data: this is a condensced version of the raw data. 2) Bite_summary: this dataframe contains summary stats (max bite, max bite number, number of bites) along with size and taxonomy data from supplied file. 
 }
 \usage{
-file_cleaner(folder, size_data = T, size_file)
+file_cleaner(folder, size_data = TRUE, size_file)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -43,8 +43,10 @@ Michael Rivera
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
-
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+example_file_path <- system.file("extdata", package = "AntBite")
+list.files(example_file_path)
+setwd(example_file_path)
+output <- file_cleaner(folder = example_file_path, size_data = TRUE, size_file = "test_size_data.xlsx")
+output[[1]] #The bite summary dataframe
+output[[2]] #The condensed raw data dataframe
+}

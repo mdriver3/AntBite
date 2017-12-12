@@ -8,7 +8,7 @@ Bite Force Scaling
 This function caculate the scaling relationships between the btie force and size of individuals within a species using linear regression. It will also plot these relationships.
 }
 \usage{
-bite_size_scaling(bite_summary, species = all, min_n = 10, morph_traits, plot = T, combine_plots = T)
+bite_size_scaling(bite_summary, species = all, min_n = 10, morph_traits, plot = TRUE, combine_plots = TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -57,11 +57,13 @@ Michael Rivera
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
 
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+example_file_path <- system.file("extdata", package = "AntBite")
+list.files(example_file_path)
+setwd(example_file_path)
+output <- file_cleaner(folder = example_file_path, size_data = TRUE, size_file = "test_size_data.xlsx")
+
+bite.summary <- output[[1]]
+
+bite_size_scaling(bite.summary, species = "all", min_n = 1, morph_traits = c("width", "length", "mandi"), plot = TRUE, combine_plots = TRUE)
+}
