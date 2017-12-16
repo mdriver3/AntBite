@@ -10,4 +10,4 @@ Description: A package for processing FlexiForce output files.
 Url: https://github.com/mdriver3/AntBite
 LazyData: true
 License: GPL-3
-Imports: plyr, gdata, tools, ggplot2, stats, grid
+Imports: plyr, gdata, tools, ggplot2, stats, grid, graphics, utils 

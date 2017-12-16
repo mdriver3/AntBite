@@ -1,11 +1,6 @@
 #Final project working draft - R Programing
 #Michael Rivera - November 11, 2017
 
-#library(plyr)
-#library(gdata)
-library(tools)
-#library(ggplot2)
-#library(grid)
 
 #Functions
 #File cleaner ----
