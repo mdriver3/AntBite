@@ -15,15 +15,19 @@ file_cleaner <- function(folder, size_data = TRUE, size_file){
 #       size_folder: the folder which has the excel or csv file of size data, including individual, species, and morph measurments
 #
 #   Returns:
-#       a list of two dataframe 1) a bite summary per individuals 2) a condensed version of the raw bite data
+#       a named list 1) bite.summary summary stats about each individuals bites and 2) bite.data a condensed verson of the raw data
 #
 #
 # Setup
+  # Creates path to file, reads them into the environment,
+  # and inatlized a blank dataframe for bite.data
   files <- list.files(path = folder, pattern = "*.csv")
   dat <- lapply(files, read.delim, sep = ",", skip = 2, header = F, col.names = c("time", "force", "blank"))
   bite.data <- data.frame(time = rep(0, 3000))
 
-# Bite dataframe
+  # Checks each data file to ensure they are proper length
+  # and have the proper recording frequency; issues warning
+  # and skips file if not compliant 
   for(i in 1:length(dat)){ 
     frame <- dat[[i]]
     name <- gsub("*.csv", "", files[i]) 
@@ -38,56 +42,67 @@ file_cleaner <- function(folder, size_data = TRUE, size_file){
       print(name)
       next
     }
-    
-    if(i == 1){ #adds the first time column to the data.frame
+  # Fills in the raw data into the bite.data dataframe
+    if(i == 1){ 
       bite.data$time <- frame[,"time"] 
     } 
     bite.data[,name] <- frame[, "force"]
   }
   
-# Bite summary 
-  bite.summary <- stats::setNames((data.frame(matrix(nrow = (ncol(bite.data) - 1), ncol = 10))),c("individual", "num_bites", "max_bite", "max_bite_num", "sd_max", "bite1", "bite2", "bite3", "bite4", "bite5"))
+  # Creates a blank bite.summary dataframe via number of individuals
+  # in the bite.data dataframe
+  bite.summary <- stats::setNames((data.frame(matrix(nrow = (ncol(bite.data) - 1), ncol = 10))),
+                                  c("individual", "num_bites", "max_bite", "max_bite_num", "sd_max", "bite1", "bite2", "bite3", "bite4", "bite5"))
   indiv_count <- 1
   
+  # Gets substings of individual names and bite number
   for(i in 2:ncol(bite.data)){
-    splt <- as.vector(strsplit(colnames(bite.data[i]), "_")) #Creates names and bite number strings
+    splt <- as.vector(strsplit(colnames(bite.data[i]), "_")) 
     indiv <- paste(splt[[1]][1], splt[[1]][2], splt[[1]][3], sep = "_")
     bite <- splt[[1]][4]
-    
-    if(any(indiv %in% bite.summary$individual) == F){ #Adds new individual to the bite.summary frame
+  
+  # Adds individual names to bite.summary; indiv_count tallies
+  # number of unique individuals to index on bite.summary
+    if(any(indiv %in% bite.summary$individual) == F){ 
       bite.summary[indiv_count, "individual"] <- indiv
       indiv_count <- indiv_count + 1
     }
-    bite.summary[bite.summary$individual == indiv & is.na(bite.summary$individual) == F, colnames(bite.summary) == bite] <- max(bite.data[,i]) #Adds the max bite to bite.summary by individual and bite number
+  # Adds bite data to bite summary, indexed by indiv name and bite number;
+  # this is the max force per bite, not overall max per individual
+    bite.summary[bite.summary$individual == indiv & is.na(bite.summary$individual) == F, 
+                 colnames(bite.summary) == bite] <- max(bite.data[,i]) 
   }
   
-  bite.summary <- bite.summary[rowSums(is.na(bite.summary)) != ncol(bite.summary),] #Removes blank rows from the bite.summary dataframe
-  #Adds number of max bites per individual
+  # Removes blank rows from bite summary, adds number of bites per individual,
+  # fills in max bite, and fills in which bite had highest force per indiv
+  bite.summary <- bite.summary[rowSums(is.na(bite.summary)) != ncol(bite.summary),] 
   bite.summary$num_bites <- rowSums(!apply(bite.summary[6:10],2, is.na))
   bite.summary$max_bite <- apply(bite.summary[6:10], 1, max, na.rm = TRUE)
   for(i in 1:length(bite.summary$individual)){bite.summary$max_bite_num[i] <- which(bite.summary[i, 6:10] == max(bite.summary[i, 6:10], na.rm = T))[1]}
   bite.summary$sd_max <- apply(bite.summary[,6:10], 1, sd, na.rm = TRUE)
   
-  if(size_data == TRUE){
-    
+  # Logical control if size data should be added
+  # into the bite.summary object
+  if(size_data == FALSE){
+    stop()
   }
+  if(size_data == TRUE){
+  } 
   
-#Checking the data
-  
+  # Load in the size data as excel or csv file
   if(tools::file_ext(size_file) == "xlsx"){
     sizes <- gdata::read.xls(size_file)
   } 
   if(tools::file_ext(size_file) == "csv"){
     sizes <- read.table(size_file)
   } 
-  #if(file_ext(size_file != "xlsx" | file_ext(size_file != "cdv"))){
-  #  stop("The size file must be in .xlsx or .csv format")
-  #}
+
+  # Check that size.data column names are correct 
   if(all(colnames(sizes) != c("individual", "species", "head_width", "head_length", "mandi_length"))){
     warning("Warning: size_data column names may be off, check or proceed with caution")
   }
 
-#Matching individuals
+  # Adds size data to bite.summary by indexing individual names
   for(i in 1:length(sizes)){
     a <- which(sizes[i, 1] == bite.summary$individual)
     bite.summary[a, "head_width"] <- sizes[i, "head_width"]
@@ -96,8 +111,8 @@ file_cleaner <- function(folder, size_data = TRUE, size_file){
     bite.summary[a, "species"] <- sizes[i, "species"]
   }
   
-  
-  list <- list(bite.summary, bite.data)
+  # Returns a named list
+  return(list(bite.summary = bite.summary, bite.data = bite.data))
 }
 
 #Variation_tester----
@@ -118,13 +133,17 @@ bite_variation <- function(bite.summary, var.threshold = 2, to_plot = TRUE){
 #       it plots distributions of bite forces per individual 
 #
 #
-# Warnings  
+  # Prints warning if there is no varation among an indiv's
+  # bites or if the varation excedes var_threshold
   for(i in 1:length(bite.summary$individual)){
-    if(bite.summary$sd_max[i] == 0){cat(paste(bite.summary$individual[i], " has no variation in max bites", sep = ""), fill = TRUE)}
-    if(bite.summary$sd_max[i] >= var.threshold){cat(paste(bite.summary$individual[i], " excedes the variation threshold in max bites: ", bite.summary$sd_max[i], sep = ""), fill = TRUE)}
+    if(bite.summary$sd_max[i] == 0){cat(paste(bite.summary$individual[i], " has no variation in max bites", sep = ""), 
+                                        fill = TRUE)}
+    if(bite.summary$sd_max[i] >= var.threshold){
+      cat(paste(bite.summary$individual[i], " excedes the variation threshold in max bites: ", bite.summary$sd_max[i], sep = ""), 
+          fill = TRUE)}
   }
   
-#Boxplot
+  # Produces a boxplot of indviduals' max bite forces
   if(to_plot == TRUE){
   individual <- vector()
   force <- vector()
@@ -139,6 +158,7 @@ bite_variation <- function(bite.summary, var.threshold = 2, to_plot = TRUE){
   df <- data.frame(individual, force)
   freq <- plyr::count(df, "individual")
   
+  # Plots boxplot and adds number of bites per individual above the plot
   boxplot(force ~ individual, data = df, xlab = "Individual", ylab = "Max force across bites")
   mtext("# Bites", side = 3, line = 1, at = .5, cex = 1, padj = 1.6)
   mtext(freq$freq, side = 3, line = 1, at = 1:length(freq$freq), padj = 1.6)
