@@ -57,7 +57,6 @@ Michael Rivera
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
-
 example_file_path <- system.file("extdata", package = "AntBite")
 list.files(example_file_path)
 setwd(example_file_path)

@@ -1,9 +1,0 @@
-^.git$
-^.Rproj.user$
-^.gitattributes$
-^.gitignore$
-^README.md$
-^SNPfreq.rproj$
-^.Rhistory$
-^.RData$
-^LICENSE

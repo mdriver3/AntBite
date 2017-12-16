@@ -2,7 +2,8 @@
 \alias{file_cleaner}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Import and Format Flexiforce(r) Force-Timeseries Data}
+Import and Format Flexiforce(r) Force-Timeseries Data
+}
 \description{
 This function takes in all Flexiforce CSV files in a folder and creates two dataframes. 1) Bite_data: this is a condensced version of the raw data. 2) Bite_summary: this dataframe contains summary stats (max bite, max bite number, number of bites) along with size and taxonomy data from supplied file. 
 }
