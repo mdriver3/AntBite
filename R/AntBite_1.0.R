@@ -168,7 +168,7 @@ bite_variation <- function(bite.summary, var.threshold = 2, to_plot = TRUE){
 #Bite_size_scaling ----
 
 
-bite_size_scaling <- function(bite_summary, species = all, min_n = 10, morph_traits, plot = TRUE, combine_plots = TRUE){
+bite_size_scaling <- function(bite_summary, species = "all", min_n = 10, morph_traits, plot = TRUE, combine_plots = TRUE){
 #   #This function uses the bite summary data to perform regression on specified species and morph traits and has
 #   the option to plot it or not. It uses 4 internal functions (one which ws obtained from Cookbook R)
 #   
@@ -183,7 +183,9 @@ bite_size_scaling <- function(bite_summary, species = all, min_n = 10, morph_tra
 #   Returns:
 #       
 #
-  
+#   Internal functions:
+  # Creates a subset of the bite summary dataframe
+  # based on the specifed species or min number of individuals
   subset_bite_summary <- function(bite.summary, species, min_n){
     if(species == "all"){
       return(bite.summary)
@@ -196,15 +198,18 @@ bite_size_scaling <- function(bite_summary, species = all, min_n = 10, morph_tra
     return(bite.summary[which(bite.summary$species == species),])
   }
   }
+  # Creates scatter plot with correlation line
   bite_plot <- function(data, trait){
     ggplot2::ggplot(data = data, ggplot2::aes(x = data[,which(colnames(data) == trait)], y = bite_summary$max_bite, color = species))+
       ggplot2::geom_point(shape = 1)+
       ggplot2::geom_smooth(method = lm, se = F)+
       ggplot2::labs(x = paste(sub("_", " ", tools::toTitleCase(trait)), "(mm)", sep = " "), y = "Max bite force (g)")+
       ggplot2::theme_bw()}
+  # Creates a linear model of size ~ trait 
   bite_lm <- function(data, trait){
     lm1 <- stats::lm(bite_summary$max_bite ~ data[,which(colnames(data) == trait)], data = data)
   }
+  # Allows for the plotting of multiple plots in one
   multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
     
     
@@ -242,7 +247,8 @@ bite_size_scaling <- function(bite_summary, species = all, min_n = 10, morph_tra
   }
  
 
-#Head_witdh
+  # Creates a boxplot of force ~ head width
+  # if width is in the morph_traits vector
   if("width" %in% morph_traits){
   temp.trait <- "head_width"
   a <- bite_lm(bite_summary, temp.trait)
@@ -250,7 +256,8 @@ bite_size_scaling <- function(bite_summary, species = all, min_n = 10, morph_tra
     plot.w <- bite_plot(subset_bite_summary(bite_summary,species, min_n), temp.trait)
   }
   
-#Head_length
+  # Creates a boxplot of force ~ head length
+  # if length is in the morph_traits vector
   if("length" %in% morph_traits){
     temp.trait <- "head_length"
     a <- bite_lm(bite_summary, temp.trait)
@@ -258,7 +265,8 @@ bite_size_scaling <- function(bite_summary, species = all, min_n = 10, morph_tra
     plot.l <- bite_plot(subset_bite_summary(bite_summary,species, min_n), temp.trait)
   }
   
-#Mandi_length
+  # Creates a boxplot of force ~ mandible length
+  # if mandi is in the morph_traits vector
   if("mandi" %in% morph_traits){
     temp.trait <- "mandi_length"
     a <- bite_lm(bite_summary, temp.trait)
@@ -266,14 +274,19 @@ bite_size_scaling <- function(bite_summary, species = all, min_n = 10, morph_tra
     plot.m <- bite_plot(subset_bite_summary(bite_summary,species, min_n), temp.trait)
   } 
   
+  # If logical combine_plots is TRUE then all
+  # figures are plotted in the same plot
   if(combine_plots == TRUE){
     multiplot(plot.w, plot.l, plot.m)
     return()
   }
   if(plot == TRUE){
-    plot(plot.w)
-    plot(plot.l)
-    plot(plot.m)
+    if(exists("plot.w")){
+    plot(plot.w)}
+    if(exists("plot.l")){
+      plot(plot.l)}
+    if(exists("plot.m")){
+      plot(plot.m)}
     return()
   }
   if(plot == F){
