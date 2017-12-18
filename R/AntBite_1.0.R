@@ -103,7 +103,7 @@ file_cleaner <- function(folder, size_data = TRUE, size_file){
   }
 
   # Adds size data to bite.summary by indexing individual names
-  for(i in 1:length(sizes)){
+  for(i in 1:length(sizes$individual)){
     a <- which(sizes[i, 1] == bite.summary$individual)
     bite.summary[a, "head_width"] <- sizes[i, "head_width"]
     bite.summary[a, "head_length"] <- sizes[i, "head_length"]
