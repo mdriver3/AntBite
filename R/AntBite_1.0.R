@@ -3,7 +3,7 @@
 
 
 #Functions
-#File cleaner gf----
+#File cleaner ----
 #This function opens all csv files in a folder, removes header, and creates 2 dataframes
 file_cleaner <- function(folder, size_data = TRUE, size_file){
 #   This function opens all the files in the folder, and creates 2 dataframes

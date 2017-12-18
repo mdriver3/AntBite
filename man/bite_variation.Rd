@@ -5,7 +5,11 @@
 Bite variation tester
 }
 \description{
-This function caculates the variation in max bites within individuals and alerts the user to highly variable or invariable records. It also can plot the variation in force across individuals. 
+This function alerts the user to individuals with highly (or no variabality) 
+variable max bite forces which may indicate an error in the measurment process.
+This uses the bite.summary dataframe generated from the file_cleaner function. If choosen 
+this also will produce boxplots of individuals' max bite forces and indicate the number
+of bites an individual produced. 
 }
 \usage{
 bite_variation(bite.summary, var.threshold = 2, to_plot = TRUE)
@@ -13,7 +17,7 @@ bite_variation(bite.summary, var.threshold = 2, to_plot = TRUE)
 %- maybe also 'usage' for other objects documented here.
 \arguments{
  \item{bite.summary}{
-The bite summary dataframe produced by file cleaner.
+The bite summary dataframe produced by file_cleaner.
 }
   \item{var.threshold}{
 The user defined number of standard deviations, above which the user should be notified.
@@ -44,15 +48,15 @@ Michael Rivera
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
+#Use the file_cleaner function to create a bite.summary dataframe
+
 example_file_path <- system.file("extdata", package = "AntBite")
 list.files(example_file_path)
 setwd(example_file_path)
 output <- file_cleaner(folder = example_file_path, size_data = TRUE, size_file = "test_size_data.xlsx")
 
-bite.summary <- output[[1]]
+bite.summary <- output$bite.summary
 bite_variation(bite.summary, var.threshold = 2, to_plot = TRUE)
-
-
 
 
 }
