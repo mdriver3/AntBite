@@ -62,8 +62,10 @@ Michael Rivera
 example_file_path <- system.file("extdata", package = "AntBite")
 list.files(example_file_path)
 setwd(example_file_path)
-output <- file_cleaner(folder = example_file_path, size_data = TRUE, size_file = "test_size_data.xlsx")
+output <- file_cleaner(folder = example_file_path, 
+size_data = TRUE, size_file = "test_size_data.xlsx")
 bite.summary <- output[[1]]
 
-bite_size_scaling(bite.summary, species = "all", min_n = 1, morph_traits = c("width", "length", "mandi"), plot = TRUE, combine_plots = TRUE)
+bite_size_scaling(bite.summary, species = "all", min_n = 1, 
+morph_traits = c("width", "length", "mandi"), plot = TRUE, combine_plots = TRUE)
 }
